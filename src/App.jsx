@@ -108,11 +108,11 @@ function App() {
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row md:flex-wrap justify-center gap-8">
+      <div className="flex flex-col md:flex-row md:flex-wrap justify-center gap-8 w-full">
         {blockchain.map((block, idx) => (
           <div
             key={idx}
-            className={`w-full max-w-md p-4 rounded-xl shadow-xl bg-gray-900 text-white flex flex-col justify-between items-center border-4 ${
+            className={`w-full sm:max-w-md md:w-[600px] p-4 rounded-xl shadow-xl bg-gray-900 text-white flex flex-col justify-between items-center border-4 ${
               blockValidity[idx] ? "border-green-500" : "border-red-500"
             }`}
           >
