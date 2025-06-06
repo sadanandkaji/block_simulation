@@ -92,7 +92,7 @@ function App() {
         padding: "40px",
         display: "flex",
         gap: 20,
-        flexWrap: "wrap",
+      
         justifyContent: "center",
       }}
     >
@@ -115,8 +115,9 @@ function App() {
             boxShadow: "0 0 10px rgba(0,0,0,0.6)",
           }}
         >
-          <h2>Block #{block.index}</h2>
+          <h1>Block #{block.index}</h1>
 
+<h2>data</h2>
           <label style={{ width: "100%", marginBottom: "8px" }}>
             Amount:{" "}
             <input
@@ -134,7 +135,7 @@ function App() {
           </label>
 
           <label style={{ width: "100%", marginBottom: "8px" }}>
-            To:{" "}
+            transaction data:{" "}
             <input
               type="text"
               value={block.data.to}
