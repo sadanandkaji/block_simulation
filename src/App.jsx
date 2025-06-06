@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
-import Block from "./block"; // Make sure Block.js is in the same folder or adjust path
+import Block from "./block";
+import "./App.css";
 
 function App() {
   const [blockchain, setBlockchain] = useState([]);
   const [blockValidity, setBlockValidity] = useState([]);
+  const [difficulty, setDifficulty] = useState(4);
   const defaultPublicKey = "0x0000->0x0000";
 
   useEffect(() => {
@@ -11,38 +13,36 @@ function App() {
       1,
       new Date().toISOString(),
       { amount: 0, to: defaultPublicKey },
-      "0"
+      "0",
+      difficulty
     );
     const block2 = new Block(
       2,
       new Date().toISOString(),
       { amount: 0, to: defaultPublicKey },
-      block1.hash
+      block1.hash,
+      difficulty
     );
     const block3 = new Block(
       3,
       new Date().toISOString(),
       { amount: 0, to: defaultPublicKey },
-      block2.hash
+      block2.hash,
+      difficulty
     );
 
     const initialChain = [block1, block2, block3];
     setBlockchain(initialChain);
-    setBlockValidity(validateChain(initialChain));
+    setBlockValidity(validateChain(initialChain, difficulty));
   }, []);
 
-  const validateChain = (chain) => {
-    const prefix = "0000";
-    const validity = [];
-
-    for (let i = 0; i < chain.length; i++) {
-      const block = chain[i];
+  const validateChain = (chain, difficulty) => {
+    const prefix = "0".repeat(difficulty);
+    return chain.map((block, i) => {
       const isHashValid = block.hash.startsWith(prefix);
       const isPrevValid = i === 0 || block.previousHash === chain[i - 1].hash;
-      validity.push(isHashValid && isPrevValid);
-    }
-
-    return validity;
+      return isHashValid && isPrevValid;
+    });
   };
 
   const handleChange = (index, field, value) => {
@@ -64,7 +64,7 @@ function App() {
         }
       }
 
-      setBlockValidity(validateChain(newChain));
+      setBlockValidity(validateChain(newChain, difficulty));
       return newChain;
     });
   };
@@ -72,135 +72,121 @@ function App() {
   const mineBlockAtIndex = (index) => {
     setBlockchain((prevChain) => {
       const newChain = [...prevChain];
-
-      newChain[index].mineBlock();
+      newChain[index].mineBlock(difficulty);
 
       for (let i = index + 1; i < newChain.length; i++) {
         newChain[i].previousHash = newChain[i - 1].hash;
         newChain[i].hash = newChain[i].calculateHash();
         newChain[i].nonce = 0;
+        newChain[i].miningTime = null;
       }
 
-      setBlockValidity(validateChain(newChain));
+      setBlockValidity(validateChain(newChain, difficulty));
       return newChain;
     });
   };
 
   return (
-    <div
-      style={{
-        padding: "40px",
-        display: "flex",
-        gap: 20,
-      
-        justifyContent: "center",
-      }}
-    >
+    <div className="p-12 flex flex-wrap justify-center gap-6 min-h-screen bg-black">
+      <h1 className="w-full text-3xl font-bold text-center mb-4 text-green-500">
+        Blockchain Simulation
+      </h1>
+
+     <div className="w-full max-w-md mx-auto text-white text-center mb-6 ">
+      <div className="flex justify-center" >
+
+  <div className="block mb-2 text-lg font-semibold text-white flex">
+    <div className="pr-3">
+
+    Difficulty :-
+    </div>
+  <input
+    type="number"
+    min="1"
+    max="7"
+    value={difficulty}
+    onChange={(e) => setDifficulty(parseInt(e.target.value))}
+    className="w-20 text-center px-3  rounded-md text-white bg-gray-800 border border-gray-300"
+    />
+    </div>
+</div>
+    </div>
+
+<div className="flex gap-20">
+
       {blockchain.map((block, idx) => (
         <div
-          key={idx}
-          style={{
-            marginBottom: "20px",
-            padding: "30px",
-            border: `3px solid ${blockValidity[idx] ? "green" : "red"}`,
-            borderRadius: "10px",
-            backgroundColor: "#111",
-            color: "white",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-            width: "600px",
-            height: "400px",
-            boxShadow: "0 0 10px rgba(0,0,0,0.6)",
-          }}
+        key={idx}
+        className={`w-full max-w-md md:w-[600px] p-4 rounded-xl shadow-xl bg-gray-900 text-white flex flex-col justify-between items-center border-4 ${
+            blockValidity[idx] ? "border-green-500" : "border-red-500"
+          }`}
         >
-          <h1>Block #{block.index}</h1>
+          <h2 className="text-xl font-bold mb-2">Block #{block.index}</h2>
 
-<h2>data</h2>
-          <label style={{ width: "100%", marginBottom: "8px" }}>
-            Amount:{" "}
+          <h3 className="text-lg font-semibold mb-2">Data</h3>
+
+          <label className="mb-3 w-full">
+            <span className="block text-sm mb-1">Amount:</span>
             <input
               type="number"
-              value={block.data.amount}
               onChange={(e) => handleChange(idx, "amount", e.target.value)}
-              style={{
-                width: "100%",
-                padding: "6px",
-                borderRadius: "4px",
-                border: "none",
-                fontSize: "1rem",
-              }}
+              placeholder="btc"
+              className="w-full px-4 py-2 rounded-md bg-white text-black border border-gray-300"
             />
           </label>
 
-          <label style={{ width: "100%", marginBottom: "8px" }}>
-            transaction data:{" "}
+          <label className="mb-3 w-full">
+            <span className="block text-sm mb-1">Transaction:</span>
             <input
               type="text"
               value={block.data.to}
               onChange={(e) => handleChange(idx, "to", e.target.value)}
-              style={{
-                width: "100%",
-                padding: "6px",
-                borderRadius: "4px",
-                border: "none",
-                fontSize: "1rem",
-              }}
-            />
+              className="w-full px-4 py-2 rounded-md bg-white text-black border border-gray-300"
+              />
           </label>
 
-          <p style={{ wordBreak: "break-all", fontSize: "0.8rem" }}>
+          {/* 🔽 Border below transaction data */}
+          <div className="border-b border-gray-500 w-full my-2 font-bold"></div>
+
+          <p className="text-xs break-words">
             <strong>Previous Hash:</strong> {block.previousHash}
           </p>
 
-          <p style={{ wordBreak: "break-all", fontSize: "0.8rem" }}>
+          <p className="text-xs break-words mt-1 ml-3 font-bold">
             <strong>Hash:</strong>{" "}
             <span
-              style={{
-                color: block.hash.startsWith("0000") ? "lightgreen" : "red",
-                fontFamily: "monospace",
-              }}
+              className={`font-mono ${
+                block.hash.startsWith("0".repeat(difficulty))
+                  ? "text-green-300"
+                  : "text-red-400"
+              }`}
             >
               {block.hash}
             </span>
           </p>
 
-          <p>
+          <p className="mt-2">
             <strong>Nonce:</strong> {block.nonce}
           </p>
 
+          {/* 🔽 Border below nonce */}
+          <div className="border-b border-gray-500 w-full my-2"></div>
+
           <button
             onClick={() => mineBlockAtIndex(idx)}
-            style={{
-              cursor: "pointer",
-              padding: "8px 12px",
-              borderRadius: "6px",
-              border: "none",
-              backgroundColor: "#4caf50",
-              color: "white",
-              fontWeight: "bold",
-              fontSize: "1rem",
-              marginTop: "10px",
-            }}
-          >
-             Mine Block
+            className="mt-4 px-4 py-2 rounded-md bg-green-600 hover:bg-green-700 font-semibold"
+            >
+            ⛏️ Mine Block
           </button>
 
           {block.miningTime !== null && (
-            <p
-              style={{
-                marginTop: "8px",
-                color: "lightgray",
-                fontSize: "0.9rem",
-                fontFamily: "monospace",
-              }}
-            >
-               Mined in: {block.miningTime.toFixed(6)} ms
+            <p className="mt-2 text-sm font-mono text-gray-400">
+              ⏱️ Mined in: {block.miningTime.toFixed(6)} ms
             </p>
           )}
         </div>
       ))}
+      </div>
     </div>
   );
 }
